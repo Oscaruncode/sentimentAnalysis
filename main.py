@@ -29,11 +29,19 @@ Criterios de clasificación:
 1 = Positivo
 2 = Neutro
 
-Reglas:
-- No inventes, elimines ni dupliques ningún AnswerID.
-- Mantén el orden de las respuestas tal como aparecen.
-- Si no está claro cuál predomina, usa 2 = Neutro.
-- La salida debe ser CSV con encabezados: AnswerID,Sentiment
+Reglas estrictas de salida:
+- La salida debe ser SOLO un CSV válido.
+- El CSV debe usar saltos de línea reales, no literales "\\n" ni "\\r\\n".
+- Usa coma (,) como separador, sin espacios adicionales.
+- Incluye la primera fila como encabezados: AnswerID,Sentiment
+- Una fila por cada respuesta, en el mismo orden recibido.
+- No agregues texto antes ni después del CSV.
+
+Ejemplo de salida esperada:
+AnswerID,Sentiment
+101,1
+102,0
+103,2
 
 ANALIZA EL SIGUIENTE JSON:
 {json.dumps([resp.dict() for resp in responses_batch], ensure_ascii=False, separators=(',', ':'))}
@@ -66,18 +74,17 @@ async def call_ollama_with_retry(prompt: str, batch_index: int, batch_size: int)
             else:
                 raise RuntimeError(f"❌ Falló batch {batch_index} después de {MAX_RETRIES} intentos.") from e
 
-
 async def call_and_validate_batch(batch, batch_index: int) -> List[SentimentOutput]:
-    """Llama a Ollama y asegura que la salida sea un CSV válido, reintentando si falla.
-       Detecta si el CSV viene sin encabezado y lo corrige automáticamente."""
     for attempt in range(1, MAX_RETRIES + 1):
-        prompt = build_prompt(batch)
-        raw_output = await call_ollama_with_retry(prompt, batch_index, len(batch))
-
-        # Limpiamos líneas vacías
-        raw_output = "\n".join([line for line in raw_output.splitlines() if line.strip()])
-
         try:
+            # Generar prompt y llamar al modelo
+            prompt = build_prompt(batch)
+            raw_output = await call_ollama_with_retry(prompt, batch_index, len(batch))
+
+            # Limpiar líneas vacías
+            raw_output = "\n".join([line for line in raw_output.splitlines() if line.strip()])
+
+            # Parsear CSV
             f = StringIO(raw_output)
             reader = csv.reader(f)
             rows = list(reader)
@@ -85,16 +92,16 @@ async def call_and_validate_batch(batch, batch_index: int) -> List[SentimentOutp
             if not rows:
                 raise ValueError("CSV vacío")
 
-            # Detectar si hay encabezados válidos
+            # Detectar encabezados
             first_row = rows[0]
             if first_row == ["AnswerID", "Sentiment"]:
                 data_rows = rows[1:]
-            elif all(cell.isdigit() for cell in first_row[1:]):  # primera fila sin encabezado
+            elif all(cell.isdigit() for cell in first_row[1:]):
                 data_rows = rows
             else:
-                # Si los encabezados están mal, asumimos que es una fila de datos
                 data_rows = rows
 
+            # Validar filas
             results = []
             for row in data_rows:
                 if len(row) != 2:
@@ -104,18 +111,13 @@ async def call_and_validate_batch(batch, batch_index: int) -> List[SentimentOutp
                     raise ValueError(f"Sentiment inválido en AnswerID {answer_id}: {sentiment_str}")
                 results.append(SentimentOutput(AnswerID=answer_id, Sentiment=int(sentiment_str)))
 
-            return results
+            return results  # Si todo va bien, devolvemos los resultados
 
-        except Exception as e:
-            print(f"⚠️ Validación CSV fallida para batch {batch_index} (intento {attempt}): {e}")
-            if attempt < MAX_RETRIES:
-                print(f"🔁 Reintentando batch {batch_index} en {RETRY_DELAY} segundos...")
-                await asyncio.sleep(RETRY_DELAY)
-            else:
-                raise RuntimeError(
-                    f"❌ Batch {batch_index} falló después de {MAX_RETRIES} intentos.\nÚltima salida:\n{raw_output}"
-                ) from e
-
+        except ValueError as e:
+            # Captura cualquier error de validación y reintenta
+            print(f"Intento {attempt} fallido: {e}")
+            if attempt == MAX_RETRIES:
+                raise  # Si se agotaron los reintentos, relanzamos el error
 
 @app.post("/SentimentAnalize", response_model=List[SentimentOutput])
 async def analyze_sentiments(payload: AnalysisRequest):
