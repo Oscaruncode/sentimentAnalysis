@@ -6,6 +6,7 @@ import json
 import time
 import csv
 from io import StringIO
+import random
 
 from models import AnalysisRequest, SentimentOutput
 
@@ -47,16 +48,34 @@ ANALIZA EL SIGUIENTE JSON:
 """
     return prompt.strip()
 
-
 async def call_ollama_with_retry(prompt: str, batch_index: int, batch_size: int) -> str:
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             print(f"\n➡️ Sending batch {batch_index} (attempt {attempt}) with {batch_size} responses...")
+
+            # Deterministic config by default
+            options = {
+                "temperature": 0.2,
+                "repeat_penalty": 1.0,
+                "seed": 42
+            }
+
+            # On retries, we loosen up
+            if attempt > 1:
+                options["temperature"] = 1
+                options["repeat_penalty"] = 1.4
+                options["seed"] = random.randint(1, 1_000_000)
+
             start = time.perf_counter()
             async with httpx.AsyncClient(timeout=260.0) as client:
                 response = await client.post(
                     OLLAMA_URL,
-                    json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False},
+                    json={
+                        "model": OLLAMA_MODEL,
+                        "prompt": prompt,
+                        "stream": False,
+                        "options": options
+                    },
                 )
             elapsed = time.perf_counter() - start
             print(f"✅ Batch {batch_index} responded in {elapsed:.2f} seconds")
@@ -64,6 +83,7 @@ async def call_ollama_with_retry(prompt: str, batch_index: int, batch_size: int)
             response.raise_for_status()
             data = response.json()
             return data.get("response", "").strip()
+
         except Exception as e:
             print(f"⚠️ Error in batch {batch_index} (attempt {attempt}): {e}")
             if attempt < MAX_RETRIES:
@@ -71,6 +91,7 @@ async def call_ollama_with_retry(prompt: str, batch_index: int, batch_size: int)
                 await asyncio.sleep(RETRY_DELAY)
             else:
                 raise RuntimeError(f"❌ Batch {batch_index} failed after {MAX_RETRIES} attempts.") from e
+
 
 async def call_and_validate_batch(batch, batch_index: int) -> List[SentimentOutput]:
     for attempt in range(1, MAX_RETRIES + 1):
