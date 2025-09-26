@@ -9,14 +9,13 @@ from io import StringIO
 
 from models import AnalysisRequest, SentimentOutput
 
+# Configuration constants
 OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "llama3"
-BATCH_SIZE = 5  # Ajusta según tu preferencia
-MAX_RETRIES = 3   # Número máximo de reintentos por batch
-RETRY_DELAY = 3   # Segundos a esperar antes de reintentar
-
+BATCH_SIZE = 10  # Maximum number of responses processed per batch
+MAX_RETRIES = 3   # Maximum number of retries for each batch
+RETRY_DELAY = 3   # Delay (in seconds) before retrying a failed batch
 app = FastAPI(title="Sentiment Analysis API")
-
 
 def build_prompt(responses_batch: list) -> str:
     prompt = f"""
@@ -50,10 +49,9 @@ ANALIZA EL SIGUIENTE JSON:
 
 
 async def call_ollama_with_retry(prompt: str, batch_index: int, batch_size: int) -> str:
-    """Llama a Ollama con reintentos si falla"""
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            print(f"\n➡️ Enviando batch {batch_index} (intento {attempt}) con {batch_size} respuestas...")
+            print(f"\n➡️ Sending batch {batch_index} (attempt {attempt}) with {batch_size} responses...")
             start = time.perf_counter()
             async with httpx.AsyncClient(timeout=260.0) as client:
                 response = await client.post(
@@ -61,30 +59,29 @@ async def call_ollama_with_retry(prompt: str, batch_index: int, batch_size: int)
                     json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False},
                 )
             elapsed = time.perf_counter() - start
-            print(f"✅ Batch {batch_index} respondido en {elapsed:.2f} segundos")
-            print(f"📏 Tamaño de la respuesta: {len(response.text)} caracteres")
+            print(f"✅ Batch {batch_index} responded in {elapsed:.2f} seconds")
+            print(f"📏 Response size: {len(response.text)} characters")
             response.raise_for_status()
             data = response.json()
             return data.get("response", "").strip()
         except Exception as e:
-            print(f"⚠️ Error en batch {batch_index} (intento {attempt}): {e}")
+            print(f"⚠️ Error in batch {batch_index} (attempt {attempt}): {e}")
             if attempt < MAX_RETRIES:
-                print(f"🔁 Reintentando en {RETRY_DELAY} segundos...")
+                print(f"🔁 Retrying in {RETRY_DELAY} seconds...")
                 await asyncio.sleep(RETRY_DELAY)
             else:
-                raise RuntimeError(f"❌ Falló batch {batch_index} después de {MAX_RETRIES} intentos.") from e
+                raise RuntimeError(f"❌ Batch {batch_index} failed after {MAX_RETRIES} attempts.") from e
 
 async def call_and_validate_batch(batch, batch_index: int) -> List[SentimentOutput]:
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            # Generar prompt y llamar al modelo
             prompt = build_prompt(batch)
             raw_output = await call_ollama_with_retry(prompt, batch_index, len(batch))
 
-            # Limpiar líneas vacías
+            # Remove empty lines from the response
             raw_output = "\n".join([line for line in raw_output.splitlines() if line.strip()])
 
-            # Parsear CSV
+            # Parse CSV output
             f = StringIO(raw_output)
             reader = csv.reader(f)
             rows = list(reader)
@@ -92,7 +89,7 @@ async def call_and_validate_batch(batch, batch_index: int) -> List[SentimentOutp
             if not rows:
                 raise ValueError("CSV vacío")
 
-            # Detectar encabezados
+            # Detect header row
             first_row = rows[0]
             if first_row == ["AnswerID", "Sentiment"]:
                 data_rows = rows[1:]
@@ -101,47 +98,45 @@ async def call_and_validate_batch(batch, batch_index: int) -> List[SentimentOutp
             else:
                 data_rows = rows
 
-            # Validar filas
+            # Validate row format and sentiment values
             results = []
             for row in data_rows:
                 if len(row) != 2:
-                    raise ValueError(f"Fila con formato inválido: {row}")
+                    raise ValueError(f"Invalid row format: {row}")
                 answer_id, sentiment_str = row
                 if sentiment_str not in {"0", "1", "2"}:
-                    raise ValueError(f"Sentiment inválido en AnswerID {answer_id}: {sentiment_str}")
+                    raise ValueError(f"Invalid sentiment in AnswerID {answer_id}: {sentiment_str}")
                 results.append(SentimentOutput(AnswerID=answer_id, Sentiment=int(sentiment_str)))
 
             return results  # Si todo va bien, devolvemos los resultados
 
         except ValueError as e:
-            # Captura cualquier error de validación y reintenta
-            print(f"Intento {attempt} fallido: {e}")
+            print(f"Attempt {attempt} failed: {e}")
             if attempt == MAX_RETRIES:
-                raise  # Si se agotaron los reintentos, relanzamos el error
+                raise
 
 @app.post("/SentimentAnalize", response_model=List[SentimentOutput])
 async def analyze_sentiments(payload: AnalysisRequest):
     start_total = time.perf_counter()
 
-    # Dividir en batches
+    # Split responses into batches
     batches = [
         payload.responses[i:i + BATCH_SIZE]
         for i in range(0, len(payload.responses), BATCH_SIZE)
     ]
-    print(f"\n📊 Total de respuestas: {len(payload.responses)}")
-    print(f"📦 Total de batches: {len(batches)}, tamaño por batch: {BATCH_SIZE}\n")
+    print(f"\n📊 Total responses: {len(payload.responses)}")
+    print(f"📦 Total batches: {len(batches)}, batch size: {BATCH_SIZE}\n")
 
     results = []
     for i, batch in enumerate(batches):
         try:
             batch_results = await call_and_validate_batch(batch, batch_index=i + 1)
             results.extend(batch_results)
-            print(f"✅ Batch {i + 1} procesado, respuestas parseadas: {len(batch_results)}")
+            print(f"✅ Batch {i + 1} processed, parsed responses: {len(batch_results)}")
         except Exception as e:
-            # Aquí capturamos el error definitivo y NO rompemos el flujo
-            print(f"❌ Batch {i + 1} falló después de {MAX_RETRIES} intentos. Se omite. Error: {e}")
-            continue   # saltar este batch y seguir con el siguiente
+            print(f"❌ Batch {i + 1} failed after {MAX_RETRIES} attempts. Skipping. Error: {e}")
+            continue    # Skip failed batch and continue processing
 
     elapsed_total = time.perf_counter() - start_total
-    print(f"\n⏱️ Tiempo total de análisis de {len(payload.responses)} respuestas: {elapsed_total:.2f} segundos")
+    print(f"\n⏱️ Total analysis time for {len(payload.responses)} responses: {elapsed_total:.2f} seconds")
     return results
