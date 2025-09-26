@@ -108,7 +108,7 @@ async def call_and_validate_batch(batch, batch_index: int) -> List[SentimentOutp
                     raise ValueError(f"Invalid sentiment in AnswerID {answer_id}: {sentiment_str}")
                 results.append(SentimentOutput(AnswerID=answer_id, Sentiment=int(sentiment_str)))
 
-            return results  # Si todo va bien, devolvemos los resultados
+            return results
 
         except ValueError as e:
             print(f"Attempt {attempt} failed: {e}")
