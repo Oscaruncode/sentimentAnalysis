@@ -69,7 +69,67 @@ payload = {
         {"AnswerID": 52, "QuestionId": 2, "AnswerText": "Mi equipo es colaborativo pero a veces lento"},
         {"AnswerID": 53, "QuestionId": 3, "AnswerText": "La carga laboral fluctúa según la temporada"},
         {"AnswerID": 54, "QuestionId": 4, "AnswerText": "Algunos jefes comunican muy bien, otros no"},
-        {"AnswerID": 55, "QuestionId": 5, "AnswerText": "El crecimiento depende de la iniciativa individual"}
+        {"AnswerID": 55, "QuestionId": 5, "AnswerText": "El crecimiento depende de la iniciativa individual"},
+
+        {"AnswerID": 56, "QuestionId": 1, "AnswerText": "El ambiente laboral es estimulante y creativo"},
+        {"AnswerID": 57, "QuestionId": 1, "AnswerText": "El ambiente es competitivo pero motivador"},
+        {"AnswerID": 58, "QuestionId": 1, "AnswerText": "El ambiente laboral es monótono"},
+        {"AnswerID": 59, "QuestionId": 1, "AnswerText": "Siento que hay tensión entre compañeros"},
+        {"AnswerID": 60, "QuestionId": 1, "AnswerText": "El ambiente es colaborativo y positivo"},
+
+        {"AnswerID": 61, "QuestionId": 2, "AnswerText": "Mi equipo siempre me respalda"},
+        {"AnswerID": 62, "QuestionId": 2, "AnswerText": "A veces recibo ayuda, otras veces no"},
+        {"AnswerID": 63, "QuestionId": 2, "AnswerText": "Nunca encuentro apoyo de mi equipo"},
+        {"AnswerID": 64, "QuestionId": 2, "AnswerText": "El equipo comparte conocimientos de forma regular"},
+        {"AnswerID": 65, "QuestionId": 2, "AnswerText": "Recibo apoyo solo cuando lo pido explícitamente"},
+
+        {"AnswerID": 66, "QuestionId": 3, "AnswerText": "La carga laboral es manejable y equilibrada"},
+        {"AnswerID": 67, "QuestionId": 3, "AnswerText": "Siento demasiada presión y estrés"},
+        {"AnswerID": 68, "QuestionId": 3, "AnswerText": "Mi carga varía según el día"},
+        {"AnswerID": 69, "QuestionId": 3, "AnswerText": "Tengo trabajo suficiente, ni demasiado ni poco"},
+        {"AnswerID": 70, "QuestionId": 3, "AnswerText": "La carga es excesiva y difícil de manejar"},
+
+        {"AnswerID": 71, "QuestionId": 4, "AnswerText": "Los jefes comunican todo claramente"},
+        {"AnswerID": 72, "QuestionId": 4, "AnswerText": "La comunicación con los jefes es confusa"},
+        {"AnswerID": 73, "QuestionId": 4, "AnswerText": "Algunos jefes explican bien, otros no"},
+        {"AnswerID": 74, "QuestionId": 4, "AnswerText": "Los jefes escuchan mis ideas y sugerencias"},
+        {"AnswerID": 75, "QuestionId": 4, "AnswerText": "Nunca recibo feedback de mis superiores"},
+
+        {"AnswerID": 76, "QuestionId": 5, "AnswerText": "Existen muchas oportunidades de crecimiento"},
+        {"AnswerID": 77, "QuestionId": 5, "AnswerText": "No veo posibilidades de desarrollo profesional"},
+        {"AnswerID": 78, "QuestionId": 5, "AnswerText": "Estoy inseguro sobre las oportunidades de crecimiento"},
+        {"AnswerID": 79, "QuestionId": 5, "AnswerText": "Siento que puedo mejorar mis habilidades y avanzar"},
+        {"AnswerID": 80, "QuestionId": 5, "AnswerText": "El crecimiento depende de la iniciativa personal"},
+
+        {"AnswerID": 81, "QuestionId": 1, "AnswerText": "El ambiente fomenta la creatividad y colaboración"},
+        {"AnswerID": 82, "QuestionId": 1, "AnswerText": "El ambiente es indiferente y poco motivador"},
+        {"AnswerID": 83, "QuestionId": 1, "AnswerText": "Siento que hay rivalidad entre compañeros"},
+        {"AnswerID": 84, "QuestionId": 1, "AnswerText": "El ambiente laboral me anima a superarme"},
+        {"AnswerID": 85, "QuestionId": 1, "AnswerText": "Hay momentos de tensión pero también cooperación"},
+
+        {"AnswerID": 86, "QuestionId": 2, "AnswerText": "Mi equipo colabora de manera constante"},
+        {"AnswerID": 87, "QuestionId": 2, "AnswerText": "Recibo ayuda solo cuando es necesario"},
+        {"AnswerID": 88, "QuestionId": 2, "AnswerText": "El equipo rara vez coopera"},
+        {"AnswerID": 89, "QuestionId": 2, "AnswerText": "A veces hay apoyo, otras veces no"},
+        {"AnswerID": 90, "QuestionId": 2, "AnswerText": "El equipo siempre está dispuesto a ayudar"},
+
+        {"AnswerID": 91, "QuestionId": 3, "AnswerText": "La carga laboral es adecuada para mi rendimiento"},
+        {"AnswerID": 92, "QuestionId": 3, "AnswerText": "Siento que tengo demasiado trabajo y poco tiempo"},
+        {"AnswerID": 93, "QuestionId": 3, "AnswerText": "Mi carga laboral varía mucho según la temporada"},
+        {"AnswerID": 94, "QuestionId": 3, "AnswerText": "Tengo trabajo ligero y puedo enfocarme en calidad"},
+        {"AnswerID": 95, "QuestionId": 3, "AnswerText": "A veces la carga es pesada, otras ligera"},
+
+        {"AnswerID": 96, "QuestionId": 4, "AnswerText": "La comunicación con los jefes es abierta y transparente"},
+        {"AnswerID": 97, "QuestionId": 4, "AnswerText": "No recibo suficiente información de mis superiores"},
+        {"AnswerID": 98, "QuestionId": 4, "AnswerText": "Algunos jefes comunican muy bien, otros no tanto"},
+        {"AnswerID": 99, "QuestionId": 4, "AnswerText": "Recibo retroalimentación constante y útil"},
+        {"AnswerID": 100, "QuestionId": 4, "AnswerText": "La comunicación depende de la situación y urgencia"},
+
+        {"AnswerID": 101, "QuestionId": 5, "AnswerText": "Existen programas de desarrollo profesional"},
+        {"AnswerID": 102, "QuestionId": 5, "AnswerText": "No hay oportunidades claras de crecimiento"},
+        {"AnswerID": 103, "QuestionId": 5, "AnswerText": "Depende de mi iniciativa avanzar en la empresa"},
+        {"AnswerID": 104, "QuestionId": 5, "AnswerText": "Siento que puedo mejorar y avanzar profesionalmente"},
+        {"AnswerID": 105, "QuestionId": 5, "AnswerText": "No tengo claridad sobre oportunidades de desarrollo"}
     ]
 }
 
