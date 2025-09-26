@@ -55,7 +55,7 @@ async def call_ollama_with_retry(prompt: str, batch_index: int, batch_size: int)
 
             # Deterministic config by default
             options = {
-                "temperature": 0.2,
+                "temperature": 0.1,
                 "repeat_penalty": 1.0,
                 "seed": 42
             }
@@ -63,7 +63,7 @@ async def call_ollama_with_retry(prompt: str, batch_index: int, batch_size: int)
             # On retries, we loosen up
             if attempt > 1:
                 options["temperature"] = 1
-                options["repeat_penalty"] = 1.4
+                options["repeat_penalty"] = 1.2
                 options["seed"] = random.randint(1, 1_000_000)
 
             start = time.perf_counter()
