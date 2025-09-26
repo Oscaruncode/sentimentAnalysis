@@ -133,9 +133,14 @@ async def analyze_sentiments(payload: AnalysisRequest):
 
     results = []
     for i, batch in enumerate(batches):
-        batch_results = await call_and_validate_batch(batch, batch_index=i + 1)
-        results.extend(batch_results)
-        print(f"✅ Batch {i + 1} procesado, respuestas parseadas: {len(batch_results)}")
+        try:
+            batch_results = await call_and_validate_batch(batch, batch_index=i + 1)
+            results.extend(batch_results)
+            print(f"✅ Batch {i + 1} procesado, respuestas parseadas: {len(batch_results)}")
+        except Exception as e:
+            # Aquí capturamos el error definitivo y NO rompemos el flujo
+            print(f"❌ Batch {i + 1} falló después de {MAX_RETRIES} intentos. Se omite. Error: {e}")
+            continue   # saltar este batch y seguir con el siguiente
 
     elapsed_total = time.perf_counter() - start_total
     print(f"\n⏱️ Tiempo total de análisis de {len(payload.responses)} respuestas: {elapsed_total:.2f} segundos")
